@@ -12,7 +12,7 @@ void DrawBoard();
 void AddChess();
 char GetInput();
 void MoveChess(char Input);
-void ShowResult();
+int ShowResult();
 void CleanBoard();
 void MoveChessLeft();
 void MoveChessRight();
@@ -26,25 +26,29 @@ int Win();
 int HasEmpty();
 int JudgeResult();
 void move();
+//void save();
 int main() {
 	InitBoard();
 	DrawBoard();
 	PrintRule();
 	while(1) {
-		AddChess();
 		char Input = GetInput();
 		MoveChess(Input);
+		AddChess();
 		DrawBoard();
+		PrintRule();
 		int GameEnded = JudgeResult();//1 for ended,0 for not
 		if (GameEnded) {
-			ShowResult();
+			if (!ShowResult()){//0 for quit
+			return 0;
 		}
 	}
-	return 0 ;
+}
 }
 
 void InitBoard() {
 	CleanBoard();
+	srand(time(NULL));
 	AddChess();
 	AddChess();
 }
@@ -56,15 +60,14 @@ void CleanBoard() {
 	}
 }
 void AddChess() {
-	srand(time(NULL));
 	int a = rand();
 	int b = rand();
 	int i,j;
 	i = a%4;
 	j = b%4;
 	while(board[i][j]!=0) {
-		a*=10086;
-		b*=10087;
+		a*=123;
+		b*=122;
 		i = a%4;
 		j = b%4;
 	}
@@ -101,11 +104,11 @@ void DrawBoard() {
 char GetInput() {
 	printf("Please enter a command:");
 	char input;
-	while (input=getchar()) {
+	while (input=getch()) {
 		if (input=='a'||input=='s'||input=='w'||input=='d'||input=='\n')
 			break;
 		if (input!='\n')
-			while (getchar() != '\n');
+			while (getch() != '\n');
 		return input;
 	}
 
@@ -225,7 +228,7 @@ int Win() {
 	}
 	return 0;
 }
-void ShowResult() { 
+int ShowResult() { 
 	if (Win()) {
 		printf("WIN\n");
 		printf("Well Down!\nYour have got a 2048 and won the game.\n");
@@ -233,15 +236,23 @@ void ShowResult() {
 		printf("GAME OVER\n");
 		printf("Oh!There is no empty in the board!\nYou have lose the game.\n");
 	}
+	printf("Do you want to play again?\n");
+	printf("'q'for QUIT   'a'for PLAY AGAIN\n");
+	int c = getch();
+	if (c=='a'){
+		CleanBoard();
+		DrawBoard(); 
+		return 1;
+	} 
+	else if (c=='q'){
+		return 0;
+	}
 }
 int JudgeResult() {
 	if (Win())
 		return 1;
-	else if (!HasEmpty&&!FindPairDown)
+	else if (!HasEmpty()&&!FindPairDown())
 		return 1;
 	else
 		return 0;
 }
-
-
-
