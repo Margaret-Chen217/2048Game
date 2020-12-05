@@ -24,7 +24,8 @@ void PrintRule();
 int FindPairDown();
 int Win();
 int HasEmpty();
-int JudgeResult();
+int HasPair();
+int GameEnded();
 void move();
 //void save();
 int main() {
@@ -34,16 +35,20 @@ int main() {
 	while(1) {
 		char Input = GetInput();
 		MoveChess(Input);
+		while(HasEmpty()==0&&HasPair()==1) {
+			printf("\nThe board is full!\nBut there is a pair,change a direction!\n");
+			char Input = GetInput();
+			MoveChess(Input);
+		}
 		AddChess();
 		DrawBoard();
 		PrintRule();
-		int GameEnded = JudgeResult();//1 for ended,0 for not
-		if (GameEnded) {
-			if (!ShowResult()){//0 for quit
-			return 0;
+		if (GameEnded()) {
+			if (!ShowResult()) { //0 for quit
+				return 0;
+			}
 		}
 	}
-}
 }
 
 void InitBoard() {
@@ -60,18 +65,13 @@ void CleanBoard() {
 	}
 }
 void AddChess() {
-	int a = rand();
-	int b = rand();
 	int i,j;
-	i = a%4;
-	j = b%4;
-	while(board[i][j]!=0) {
-		a*=123;
-		b*=122;
-		i = a%4;
-		j = b%4;
-	}
-	if (a%400<=300) {
+	do {
+		i = rand()%4;
+		j = rand()%4;
+	} while(board[i][j]!=0);
+
+	if (rand()%400<=300) {
 		board[i][j]=2;
 	} else
 		board[i][j]=4;
@@ -87,29 +87,32 @@ void PrintRule() {
 void DrawBoard() {
 	system("cls");
 	int len1=19;
-	//for (int i=1; i<=(WIDTH-len1+1)/2; i++) {
-	//	printf(" ");
-	//}
-	printf("**** GAME 2048 ****\n");
+	printf("  **** GAME 2048 ****\n\n");
 	for (int i=0; i<SIZE; i++) {
 		for (int j=0; j<SIZE; j++) {
-			if (board[i][j]!=0)
-				printf("[%4d]",board[i][j]);
-			else
+			if (board[i][j]!=0) {
+				if(board[i][j]<10)
+					printf("[ %d  ]",board[i][j]);
+				else if(board[i][j]<100)
+					printf("[ %d ]",board[i][j]);
+				else if(board[i][j]<1000)
+					printf("[%d ]",board[i][j]);
+				else if(board[i][j]<10000)
+					printf("[%d]",board[i][j]);
+			} else
 				printf("[%4s]"," ");
 		}
 		printf("\n\n");
 	}
 }
 char GetInput() {
-	printf("Please enter a command:");
+
 	char input;
+	printf("Please enter a command:");
 	while (input=getch()) {
-		if (input=='a'||input=='s'||input=='w'||input=='d'||input=='\n')
+
+		if (input=='a'||input=='s'||input=='w'||input=='d')
 			break;
-		if (input!='\n')
-			while (getch() != '\n');
-		return input;
 	}
 
 }
@@ -152,9 +155,8 @@ void MoveChessLeft() {
 	RotateBoard();
 	MoveChessDown();
 	RotateBoard();
-	
-}
 
+}
 void SlideArray() {
 	for (int j=0; j<SIZE; j++) {
 		move();
@@ -198,8 +200,8 @@ int HasEmpty() {
 	int isEmpty=0;
 	for (int i=0; i<SIZE; i++) {
 		for (int j=0; j<SIZE; j++) {
-			if (board[i][j]==0);
-			isEmpty=1;
+			if (board[i][j]==0)
+				isEmpty=1;
 		}
 	}
 	if (isEmpty)
@@ -209,7 +211,7 @@ int HasEmpty() {
 }
 int FindPairDown() {
 	for (int i=0; i<SIZE; i++) {
-		for (int j=0; j<SIZE; j++) {
+		for (int j=0; j<SIZE-1; j++) {
 			if (board[i][j]==board[i][j+1]) {
 				return 1;
 			}
@@ -217,7 +219,6 @@ int FindPairDown() {
 	}
 	return 0;
 }
-
 int Win() {
 	for (int i=0; i<SIZE; i++) {
 		for (int j=0; j<SIZE; j++) {
@@ -228,30 +229,47 @@ int Win() {
 	}
 	return 0;
 }
-int ShowResult() { 
+int ShowResult() {
 	if (Win()) {
 		printf("WIN\n");
 		printf("Well Down!\nYour have got a 2048 and won the game.\n");
-	} else if (!HasEmpty&&!FindPairDown) {
+	} else if (!HasEmpty()&&!FindPairDown()) {
 		printf("GAME OVER\n");
 		printf("Oh!There is no empty in the board!\nYou have lose the game.\n");
 	}
 	printf("Do you want to play again?\n");
 	printf("'q'for QUIT   'a'for PLAY AGAIN\n");
-	int c = getch();
-	if (c=='a'){
-		CleanBoard();
-		DrawBoard(); 
+	int input2;
+	while (input2=getch()) {
+		if (input2=='a'||input2=='q')
+			break;
+	}
+	if (input2=='a') {
+		InitBoard();
+		DrawBoard();
+		PrintRule();
 		return 1;
-	} 
-	else if (c=='q'){
+	} else if (input2=='q') {
+		printf("\nOK!BYE!\n");
 		return 0;
 	}
 }
-int JudgeResult() {
+int HasPair() {
+	int a = FindPairDown();
+	RotateBoard();
+	int b = FindPairDown();
+	RotateBoard();
+	RotateBoard();
+	RotateBoard();
+	if (a==1||b==1)
+		return 1;
+	else
+		return 0;
+}
+int GameEnded() {
 	if (Win())
 		return 1;
-	else if (!HasEmpty()&&!FindPairDown())
+	else if (HasEmpty()==0&&HasPair()==0)
 		return 1;
 	else
 		return 0;
