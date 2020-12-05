@@ -5,6 +5,7 @@
 #define MARK 2048
 #define WIDTH 110
 #include <conio.h>
+
 int board[SIZE][SIZE]= {0};
 
 void InitBoard();
@@ -27,13 +28,16 @@ int HasEmpty();
 int HasPair();
 int GameEnded();
 void move();
-//void save();
+void Save();
+int Load();
 int main() {
 	InitBoard();
 	DrawBoard();
 	PrintRule();
 	while(1) {
 		char Input = GetInput();
+		if (Input=='q')
+			return 0;
 		MoveChess(Input);
 		while(HasEmpty()==0&&HasPair()==1) {
 			printf("\nThe board is full!\nBut there is a pair,change a direction!\n");
@@ -52,10 +56,23 @@ int main() {
 }
 
 void InitBoard() {
-	CleanBoard();
 	srand(time(NULL));
-	AddChess();
-	AddChess();
+	char input;
+	printf("'N'for a new game\n'L'to load the latest memory\n");
+	printf("Please enter a command:");
+	while (input=getch()) {
+
+		if (input=='N'||input=='L')
+			break;
+	}
+	int LoadError = 1;
+	if (input=='L')
+		LoadError = Load();
+	if (input=='N'||!LoadError) {
+		CleanBoard();
+		AddChess();
+		AddChess();
+	}	
 }
 void CleanBoard() {
 	for (int i=0; i<SIZE; i++) {
@@ -83,6 +100,7 @@ void PrintRule() {
 	printf("'s'for DOWN\n");
 	printf("'a'for LEFT\n");
 	printf("'d'for RIGHT\n");
+	printf("'q'for Save and Quit\n");
 }
 void DrawBoard() {
 	system("cls");
@@ -111,9 +129,13 @@ char GetInput() {
 	printf("Please enter a command:");
 	while (input=getch()) {
 
-		if (input=='a'||input=='s'||input=='w'||input=='d')
+		if (input=='a'||input=='s'||input=='w'||input=='d'||input=='q')
 			break;
 	}
+	if (input=='q'){
+		Save();
+	}
+	return input;
 
 }
 void MoveChess(char Input) {
@@ -273,4 +295,25 @@ int GameEnded() {
 		return 1;
 	else
 		return 0;
+}
+void Save() {
+	FILE *file = fopen("save.bin","wb");
+	if(file == NULL) {
+		printf("save error!\n");
+	}
+	fwrite(board, sizeof board[0][0], SIZE*SIZE, file);
+	fclose(file);
+	printf("\n\nSuccessfully Save\n");
+}
+int Load() {
+	int board2[SIZE][SIZE];
+	FILE *file2 = fopen("save.bin","rb");
+	fread(board2, sizeof board[0][0], SIZE*SIZE, file2);
+	fclose(file2);
+	for(int i=0; i<SIZE; i++) {
+		for (int j=0; j<SIZE; j++) {
+			board[i][j]=board2[i][j];
+		}
+	}
+	return 1;
 }
