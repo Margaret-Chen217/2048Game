@@ -6,7 +6,7 @@ Date:2020.12.5
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define SIZE 4
+#define SIZE 2048
 #define MARK 32
 #include <conio.h>
 
